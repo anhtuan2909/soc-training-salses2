@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đào tạo NetGuardX - Buổi 2: Hiểu Rõ Dịch Vụ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Visualization & Content Choices:
+        - Report Info: Mô hình SOC 3 bước. Goal: Explain process. Viz/Presentation: HTML/CSS diagram with interactive text reveals for each step. Interaction: Click on step to see details. Justification: Visually engaging, clear process flow. Library: Tailwind for styling.
+        - Report Info: NetGuardX Làm Gì / Không Làm Gì. Goal: Clarify scope. Viz/Presentation: Accordion-style lists. Interaction: Click to expand/collapse. Justification: Concise overview, allows detail on demand. Library: JS + Tailwind.
+        - Report Info: So sánh NetGuardX vs. IT Nội Bộ / Đối thủ. Goal: Highlight advantages. Viz/Presentation: Interactive HTML tables (styled with Tailwind). Interaction: Tabs to switch between comparisons. Justification: Clear side-by-side comparison. Library: JS + Tailwind.
+        - Report Info: Hoạt động (Bảng so sánh, Hỏi đáp). Goal: Reinforce learning. Viz/Presentation: Interactive table for "Bảng so sánh", FAQ-style toggle for "Hỏi đáp". Interaction: Clickable table elements for comparison; click question to reveal answer. Justification: Engages user in active learning. Library: JS + Tailwind.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        :root {
+            --primary-green: #2E8B57; /* SeaGreen - main bamboo/tech color */
+            --accent-green: #3CB371; /* MediumSeaGreen - highlight */
+            --light-green: #A8D5BA; /* Lighter shade for backgrounds or elements */
+            --background-green: #F0F7F0; /* Very light green, like misty bamboo forest */
+            --text-dark: #2F4F4F; /* DarkSlateGray - for primary text */
+            --text-light: #ffffff;
+            --border-color: #8FBC8F; /* DarkSeaGreen - for borders */
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-green);
+            color: var(--text-dark);
+        }
+
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link {
+            color: var(--primary-green);
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--accent-green);
+            border-bottom-color: var(--accent-green);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--accent-green) 100%);
+            color: var(--text-light);
+        }
+
+        .section-title {
+            color: var(--primary-green);
+            border-bottom: 3px solid var(--accent-green);
+        }
+
+        .card {
+            background-color: var(--text-light);
+            border-left: 5px solid var(--primary-green);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .card-secondary {
+             border-left-color: var(--accent-green);
+        }
+
+        .accordion-button {
+            background-color: #E8F5E9; /* Light green background for accordion button */
+            color: var(--primary-green);
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-button:hover {
+            background-color: var(--light-green);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        
+        .tab-button {
+            background-color: #E0E0E0;
+            color: var(--text-dark);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: var(--primary-green);
+            color: var(--text-light);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* SOC Model Diagram */
+        .soc-step-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start; /* Align items to the start for text below */
+            margin-top: 2rem;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .soc-step {
+            text-align: center;
+            width: 30%; /* Adjust width for spacing */
+            min-width: 200px; /* Minimum width for smaller screens */
+            margin-bottom: 1.5rem; /* Space for wrapping */
+            cursor: pointer;
+        }
+        .soc-step-icon-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--light-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .soc-step:hover .soc-step-icon-container {
+            background-color: var(--accent-green);
+        }
+        .soc-step-icon-container i {
+            font-size: 2rem;
+            color: var(--primary-green);
+        }
+        .soc-step:hover .soc-step-icon-container i {
+            color: var(--text-light);
+        }
+        .soc-step h4 {
+            color: var(--primary-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .soc-step-details {
+            display: none; /* Hidden by default */
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        
+        /* Comparison Table Styling */
+        .comparison-table th {
+            background-color: var(--primary-green);
+            color: var(--text-light);
+        }
+        .comparison-table td, .comparison-table th {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .comparison-table .fa-check-circle { color: var(--accent-green); }
+        .comparison-table .fa-times-circle { color: #DC3545; }
+        .comparison-table .fa-minus-circle { color: #FFC107; }
+        
+        /* Hoat Dong Interactive Table */
+        .interactive-comparison-cell {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .interactive-comparison-cell:hover {
+            background-color: var(--light-green);
+        }
+        .interactive-comparison-cell.selected {
+            background-color: var(--accent-green);
+            color: white;
+            font-weight: bold;
+        }
+        .comparison-explanation {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e9ecef;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="hero-section py-12 sm:py-16 text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">NetGuardX Sales Training</h1>
+            <p class="text-xl sm:text-2xl font-light">BUỔI 2 – HIỂU RÕ NETGUARDX LÀ GÌ, LÀM GÌ, KHÔNG LÀM GÌ</p>
+            <div class="mt-6 text-lg">NetGuardX</div>
+        </div>
+    </header>
+
+    <nav id="navbar" class="sticky-nav shadow-md">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap justify-center sm:justify-start space-x-4 sm:space-x-6 py-3">
+                <a href="#muc-tieu" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Mục Tiêu</a>
+                <a href="#mo-hinh-soc" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Mô Hình SOC</a>
+                <a href="#lam-gi" class="nav-link px-3 py-2 rounded-md text-sm font-medium">NetGuardX Làm Gì</a>
+                <a href="#khong-lam-gi" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Không Làm Gì</a>
+                <a href="#so-sanh" class="nav-link px-3 py-2 rounded-md text-sm font-medium">So Sánh</a>
+                <a href="#hoat-dong" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Hoạt Động</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+
+        <section id="muc-tieu" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl sm:text-3xl font-bold section-title mb-6 pb-2">🎯 Mục Tiêu Buổi 2</h2>
+            <div class="card p-6 rounded-lg shadow-lg">
+                <p class="mb-4 text-lg">Sau buổi học này, bạn sẽ có khả năng:</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><i class="fas fa-bullseye mr-2 text-green-600"></i><strong>Diễn giải rõ ràng và thuyết phục</strong> giá trị cốt lõi mà dịch vụ NetGuardX mang lại cho khách hàng, không chỉ là tính năng mà là giải pháp cho vấn đề của họ.</li>
+                    <li><i class="fas fa-exclamation-triangle mr-2 text-yellow-500"></i><strong>Hiểu rõ và truyền đạt chính xác</strong> những giới hạn của dịch vụ, giúp xây dựng kỳ vọng đúng đắn cho khách hàng, tránh những hiểu lầm không đáng có.</li>
+                    <li><i class="fas fa-balance-scale mr-2 text-blue-500"></i><strong>So sánh một cách thông minh</strong> NetGuardX với các giải pháp thay thế như đội ngũ IT nội bộ hoặc các dịch vụ outsource khác trên thị trường, làm nổi bật lợi thế cạnh tranh của NetGuardX.</li>
+                </ul>
+                <p class="mt-6 text-gray-800"><strong>Lời dẫn:</strong> "Buổi 2 là chìa khóa để bạn tự tin giải đáp mọi thắc mắc của khách hàng về 'trái tim' của NetGuardX. Chúng ta sẽ mổ xẻ dịch vụ để hiểu từng chân tơ kẽ tóc, từ đó biến kiến thức thành sức mạnh bán hàng!"</p>
+            </div>
+        </section>
+
+        <section id="mo-hinh-soc" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl sm:text-3xl font-bold section-title mb-6 pb-2">🛡️ Mô Hình SOC 3 Bước Cốt Lõi Của NetGuardX</h2>
+            <div class="card p-6 rounded-lg shadow-lg">
+                <p class="text-lg text-gray-800 mb-6">NetGuardX vận hành dựa trên một quy trình SOC (Trung tâm Điều hành An ninh) 3 bước chặt chẽ, được tối ưu hóa để đảm bảo an toàn tối đa cho hệ thống của khách hàng. Đây là nền tảng giúp chúng ta chủ động đối phó với các mối đe dọa an ninh mạng ngày càng tinh vi.</p>
+                <div class="soc-step-diagram">
+                    <div class="soc-step" onclick="toggleDetails('detect-details')">
+                        <div class="soc-step-icon-container">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4>1. Phát Hiện (Detect)</h4>
+                        <p class="text-sm text-gray-600">Thu thập & Phân tích dữ liệu, nhận diện dấu hiệu bất thường.</p>
+                        <div id="detect-details" class="soc-step-details">
+                            <p><strong>Cách thức:</strong> NetGuardX tự động thu thập log và dữ liệu an ninh từ nhiều nguồn đa dạng trong hệ thống của khách hàng: máy chủ, thiết bị mạng (firewall, router, switch), IDS/IPS, ứng dụng, endpoint,...</p>
+                            <p><strong>Phân tích chuyên sâu:</strong> Dữ liệu này được đưa vào hệ thống SIEM (Security Information and Event Management) tiên tiến, nơi các thuật toán thông minh và chuyên gia của chúng tôi phân tích, tương quan sự kiện để tìm kiếm các dấu hiệu bất thường, hành vi đáng ngờ, hoặc các mẫu tấn công đã biết (TTPs - Tactics, Techniques, and Procedures) cũng như các mối đe dọa zero-day tiềm ẩn.</p>
+                            <p><strong>Ví dụ dấu hiệu:</strong> Lưu lượng mạng bất thường, đăng nhập thất bại liên tục từ IP lạ, thay đổi cấu hình hệ thống không rõ lý do, hoạt động của mã độc đã biết.</p>
+                            <p><strong>Giá trị cho kinh doanh:</strong> Phát hiện sớm các mối đe dọa giúp giảm thiểu tối đa thời gian chúng tồn tại trong hệ thống (dwell time), từ đó hạn chế thiệt hại và chi phí khắc phục.</p>
+                        </div>
+                    </div>
+                    <div class="soc-step" onclick="toggleDetails('alert-details')">
+                        <div class="soc-step-icon-container">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h4>2. Cảnh Báo (Alert)</h4>
+                        <p class="text-sm text-gray-600">Thông báo tức thời khi phát hiện sự cố, đảm bảo thông tin đến đúng người.</p>
+                        <div id="alert-details" class="soc-step-details">
+                            <p><strong>Quy trình:</strong> Ngay khi một sự cố tiềm ẩn hoặc một mối đe dọa được xác định, hệ thống NetGuardX sẽ tự động tạo cảnh báo.</p>
+                            <p><strong>Ưu tiên hóa:</strong> Các cảnh báo được chuyên gia SOC phân loại và ưu tiên dựa trên mức độ nghiêm trọng và tác động tiềm ẩn đến hoạt động kinh doanh của khách hàng.</p>
+                            <p><strong>Kênh thông báo:</strong> Thông tin cảnh báo được gửi tức thời đến đội ngũ IT của khách hàng và các bên liên quan thông qua nhiều kênh linh hoạt: dashboard trực quan, email, tin nhắn, hoặc cuộc gọi khẩn cấp đối với các sự cố nghiêm trọng.</p>
+                            <p><strong>Giá trị cho kinh doanh:</strong> Cảnh báo nhanh chóng và chính xác giúp đội ngũ của khách hàng nắm bắt tình hình kịp thời, phối hợp hành động và đưa ra quyết định ứng phó phù hợp, giảm thiểu thời gian phản ứng.</p>
+                        </div>
+                    </div>
+                    <div class="soc-step" onclick="toggleDetails('respond-details')">
+                        <div class="soc-step-icon-container">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>3. Phản Ứng (Respond)</h4>
+                        <p class="text-sm text-gray-600">Phân tích chuyên sâu, đưa ra khuyến nghị và hướng dẫn khắc phục.</p>
+                        <div id="respond-details" class="soc-step-details">
+                            <p><strong>Vai trò của SOC:</strong> Đội ngũ chuyên gia SOC của NetGuardX không chỉ gửi cảnh báo mà còn tiến hành phân tích chuyên sâu về bản chất của mối đe dọa, đánh giá mức độ nghiêm trọng và phạm vi ảnh hưởng.</p>
+                            <p><strong>Khuyến nghị chi tiết:</strong> Dựa trên kết quả phân tích, chúng tôi cung cấp các khuyến nghị cụ thể, các bước hướng dẫn chi tiết để đội ngũ IT của khách hàng có thể thực hiện các hành động ngăn chặn và khắc phục ban đầu trong phạm vi giám sát của NetGuardX (ví dụ: cô lập máy bị nhiễm, chặn IP đáng ngờ trên firewall, rà soát lỗ hổng liên quan).</p>
+                            <p><strong>Hỗ trợ phối hợp:</strong> NetGuardX đóng vai trò là đối tác tin cậy, phối hợp chặt chẽ với đội ngũ IT của khách hàng trong suốt quá trình ứng phó sự cố, cung cấp thông tin và hỗ trợ cần thiết.</p>
+                            <p><strong>Giá trị cho kinh doanh:</strong> Sự hỗ trợ chuyên môn từ NetGuardX giúp khách hàng ứng phó hiệu quả hơn, giảm thiểu sai sót trong quá trình xử lý sự cố, và nhanh chóng khôi phục hoạt động bình thường, đồng thời học hỏi kinh nghiệm để nâng cao năng lực phòng thủ.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lam-gi" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl sm:text-3xl font-bold section-title mb-6 pb-2">✅ NetGuardX LÀM GÌ Để Bảo Vệ Doanh Nghiệp?</h2>
+            <div class="space-y-4">
+                <div class="card p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Giám sát an toàn thông tin liên tục 24/7/365</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-800">
+                        <p class="mt-2"><strong>Chi tiết:</strong> Đội ngũ chuyên gia và hệ thống tự động của NetGuardX hoạt động không ngừng nghỉ, theo dõi sát sao mọi diễn biến an ninh trên hệ thống của bạn, bất kể ngày đêm, cuối tuần hay ngày lễ. Tội phạm mạng không ngủ, và chúng tôi cũng vậy.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> Đảm bảo không bỏ lỡ bất kỳ dấu hiệu tấn công nào, ngay cả những cuộc tấn công xảy ra ngoài giờ làm việc, giúp phát hiện và ứng phó kịp thời trước khi thiệt hại lan rộng.</p>
+                    </div>
+                </div>
+                <div class="card p-1 rounded-lg shadow-lg">
+                     <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Thu thập, phân tích và tương quan dữ liệu log từ hạ tầng của khách hàng</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Chi tiết:</strong> NetGuardX thu thập log từ đa dạng các nguồn: firewall, máy chủ, IDS/IPS, ứng dụng, thiết bị đầu cuối... Dữ liệu này được chuẩn hóa, tổng hợp và phân tích bằng công nghệ SIEM tiên tiến, giúp phát hiện các mối liên hệ tiềm ẩn giữa các sự kiện tưởng chừng như rời rạc.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> Cung cấp một bức tranh toàn cảnh về tình hình an ninh, giúp phát hiện các cuộc tấn công phức tạp, đa giai đoạn mà việc phân tích log riêng lẻ không thể thấy được. Hỗ trợ điều tra và truy vết nguồn gốc tấn công hiệu quả.</p>
+                    </div>
+                </div>
+                 <div class="card p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Phát hiện sớm các dấu hiệu tấn công, mã độc, hành vi bất thường</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Chi tiết:</strong> Bằng cách kết hợp các rule phân tích dựa trên tri thức về mối đe dọa (Threat Intelligence), phân tích hành vi người dùng và thực thể (UEBA), cùng với sự giám sát của chuyên gia, NetGuardX có khả năng nhận diện sớm các dấu hiệu tấn công, sự hiện diện của mã độc, hoặc các hành vi đi chệch khỏi chuẩn mực thông thường.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> "Thời gian là vàng" trong an ninh mạng. Phát hiện càng sớm, thiệt hại càng nhỏ. Giảm thiểu nguy cơ mất dữ liệu, gián đoạn hoạt động và chi phí khắc phục tốn kém.</p>
+                    </div>
+                </div>
+                <div class="card p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Cảnh báo nhanh chóng và chính xác các sự cố bảo mật</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Chi tiết:</strong> Khi một sự cố được xác định, NetGuardX đảm bảo thông tin cảnh báo được gửi đến đúng người, đúng lúc, với đầy đủ thông tin cần thiết để khách hàng hiểu rõ tình hình và mức độ ưu tiên.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> Giúp đội ngũ IT của khách hàng phản ứng nhanh, giảm thiểu thời gian "mù thông tin" và đưa ra các quyết định ứng phó kịp thời, chính xác.</p>
+                    </div>
+                </div>
+                <div class="card p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Cung cấp báo cáo định kỳ về tình hình an ninh và các sự kiện đáng chú ý</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Chi tiết:</strong> Khách hàng nhận được các báo cáo định kỳ (tuần/tháng/quý) tổng hợp về tình hình an ninh, các sự kiện nổi bật, xu hướng tấn công, và các khuyến nghị cải thiện. Báo cáo được trình bày rõ ràng, dễ hiểu, tập trung vào thông tin quản trị.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> Giúp ban lãnh đạo và đội ngũ IT nắm bắt được bức tranh tổng thể về an ninh, đánh giá hiệu quả đầu tư, đưa ra quyết định cải thiện và đáp ứng các yêu cầu tuân thủ (compliance).</p>
+                    </div>
+                </div>
+                 <div class="card p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Hỗ trợ kỹ thuật ban đầu: tư vấn các bước xử lý, cung cấp IOCs</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Chi tiết:</strong> Khi có sự cố, đội ngũ SOC của NetGuardX sẽ cung cấp các hướng dẫn, tư vấn ban đầu về các bước cần thực hiện để ngăn chặn mối đe dọa, ví dụ như cách ly hệ thống bị nhiễm, các chỉ số nhận dạng tấn công (IOCs - Indicators of Compromise) như IP độc hại, hash mã độc để khách hàng có thể chủ động chặn trên các thiết bị bảo mật của mình.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> Giúp khách hàng hành động nhanh chóng và đúng hướng trong những thời khắc quan trọng, hạn chế sự lây lan và tác động của cuộc tấn công, ngay cả trước khi có sự can thiệp sâu hơn.</p>
+                    </div>
+                </div>
+                 <div class="card p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Cập nhật thông tin tình báo về mối đe dọa mới nhất (Threat Intelligence)</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Chi tiết:</strong> NetGuardX liên tục cập nhật nền tảng tri thức về các mối đe dọa mới, các kỹ thuật tấn công mới nổi trên toàn cầu. Thông tin này được tích hợp vào hệ thống giám sát để nâng cao khả năng phát hiện chủ động.</p>
+                        <p><strong>Giá trị kinh doanh:</strong> Giúp doanh nghiệp đi trước một bước so với tội phạm mạng, tăng cường khả năng phòng thủ trước cả những mối đe dọa chưa từng xuất hiện trong hệ thống của mình.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="khong-lam-gi" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl sm:text-3xl font-bold section-title mb-6 pb-2">🚫 NetGuardX KHÔNG LÀM GÌ – Thiết Lập Kỳ Vọng Đúng Đắn</h2>
+            <p class="text-lg text-gray-800 mb-6">Để đảm bảo sự hợp tác hiệu quả và minh bạch, điều quan trọng là phải hiểu rõ những gì NetGuardX <strong>không</strong> thực hiện. Điều này giúp khách hàng có kỳ vọng thực tế và phối hợp tốt nhất với chúng tôi.</p>
+            <div class="space-y-4">
+                <div class="card card-secondary p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Không trực tiếp truy cập và thực hiện các thay đổi cấu hình trên hệ thống của khách hàng (trừ khi có ủy quyền rõ ràng)</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Giải thích:</strong> NetGuardX tập trung vào giám sát, phát hiện và đưa ra khuyến nghị. Chúng tôi không tự ý đăng nhập vào máy chủ, firewall, hay các thiết bị khác của bạn để thay đổi cấu hình, chặn IP, xóa file... trừ khi có một thỏa thuận dịch vụ mở rộng với quy trình phối hợp và ủy quyền được xác lập rõ ràng, chi tiết từ trước.</p>
+                        <p><strong>Lý do:</strong> Việc thay đổi cấu hình thuộc về trách nhiệm và quyền kiểm soát của đội ngũ IT khách hàng. Điều này đảm bảo tính toàn vẹn và chủ quyền của hệ thống, tránh các rủi ro không mong muốn do can thiệp từ bên ngoài mà không có sự giám sát chặt chẽ của chủ sở hữu hệ thống.</p>
+                        <p><strong>Kỳ vọng đúng:</strong> NetGuardX sẽ cung cấp thông tin chi tiết và hướng dẫn để đội IT của bạn thực hiện hành động. Ví dụ: "Chúng tôi phát hiện IP X.X.X.X đang cố gắng tấn công brute-force vào máy chủ Y. Khuyến nghị: Chặn IP X.X.X.X trên firewall của bạn."</p>
+                    </div>
+                </div>
+                <div class="card card-secondary p-1 rounded-lg shadow-lg">
+                     <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Không thay thế hoàn toàn vai trò của Firewall, Antivirus, IPS/IDS hay các giải pháp bảo mật điểm cuối khác</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Giải thích:</strong> NetGuardX là một dịch vụ SOC, hoạt động như "bộ não" giám sát và phân tích. Nó không phải là một giải pháp thay thế cho các công cụ phòng thủ cơ bản như tường lửa (ngăn chặn truy cập trái phép), phần mềm diệt virus (bảo vệ điểm cuối), hay hệ thống phát hiện/ngăn chặn xâm nhập (IDS/IPS).</p>
+                        <p><strong>Vai trò bổ trợ:</strong> NetGuardX tích hợp và phân tích dữ liệu log từ chính các giải pháp này để có cái nhìn toàn diện. Ví dụ, log từ firewall cho biết những kết nối nào bị chặn, log từ Antivirus cho biết mã độc nào được phát hiện ở điểm cuối. NetGuardX giúp tương quan các sự kiện này để phát hiện các cuộc tấn công phức tạp hơn.</p>
+                        <p><strong>Kỳ vọng đúng:</strong> Khách hàng vẫn cần duy trì và cập nhật các giải pháp bảo mật nền tảng. NetGuardX giúp tối ưu hóa giá trị của các khoản đầu tư này bằng cách cung cấp một lớp giám sát và phân tích thông minh hơn.</p>
+                    </div>
+                </div>
+                 <div class="card card-secondary p-1 rounded-lg shadow-lg">
+                    <button class="accordion-button w-full text-left p-4 font-semibold rounded-md flex justify-between items-center">
+                        <span>Không thể đảm bảo bảo vệ hiệu quả nếu khách hàng không cung cấp đủ nguồn log, không tuân thủ khuyến nghị, hoặc không có IT nội bộ phối hợp</span>
+                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="accordion-content px-4 pb-4 text-gray-700">
+                        <p class="mt-2"><strong>Giải thích:</strong> Hiệu quả của NetGuardX phụ thuộc rất lớn vào sự hợp tác từ phía khách hàng.</p>
+                        <ul class="list-disc list-inside ml-4 mt-2">
+                            <li><strong>Nguồn log đầy đủ:</strong> Nếu không có đủ log từ các hệ thống quan trọng, chúng tôi sẽ không có đủ "nguyên liệu" để phân tích và phát hiện mối đe dọa. Giống như bác sĩ không thể chẩn đoán bệnh nếu không có đủ thông tin xét nghiệm.</li>
+                            <li><strong>Tuân thủ khuyến nghị:</strong> Nếu chúng tôi đưa ra các khuyến nghị bảo mật quan trọng (ví dụ: vá một lỗ hổng nghiêm trọng) mà khách hàng không thực hiện, nguy cơ bị tấn công vẫn còn đó.</li>
+                            <li><strong>Phối hợp từ IT nội bộ:</strong> Khi có sự cố cần can thiệp trực tiếp trên hạ tầng (ví dụ: cô lập máy chủ, khôi phục dữ liệu từ backup), đội ngũ IT của khách hàng đóng vai trò then chốt. NetGuardX không thể làm thay việc này từ xa nếu không có ủy quyền và hạ tầng cho phép.</li>
+                        </ul>
+                        <p><strong>Kỳ vọng đúng:</strong> NetGuardX là một quan hệ đối tác. Sự thành công đòi hỏi sự cam kết và phối hợp từ cả hai phía. Chúng tôi cung cấp chuyên môn và công cụ giám sát, khách hàng cung cấp dữ liệu và thực hiện các hành động cần thiết trên hệ thống của mình.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="so-sanh" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl sm:text-3xl font-bold section-title mb-6 pb-2">⚖️ So Sánh NetGuardX: Tại Sao Chọn Chúng Tôi?</h2>
+            <div class="tabs-container">
+                <div class="mb-4 flex space-x-2 border-b-2 border-gray-300">
+                    <button class="tab-button py-2 px-4 rounded-t-md active" onclick="openTab(event, 'vs-inhouse')">vs. Đội IT Nội Bộ</button>
+                    <button class="tab-button py-2 px-4 rounded-t-md" onclick="openTab(event, 'vs-other-outsourcers')">vs. Đơn Vị Outsource Khác</button>
+                </div>
+
+                <div id="vs-inhouse" class="tab-content active card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">NetGuardX vs. Tự Xây Dựng Đội IT An Ninh Nội Bộ</h3>
+                    <p class="text-gray-700 mb-4">Nhiều doanh nghiệp cân nhắc việc tự xây dựng đội ngũ an ninh mạng. Tuy nhiên, đây là một thách thức lớn về chi phí, chuyên môn và vận hành. NetGuardX mang lại giải pháp hiệu quả hơn:</p>
+                    <div class="overflow-x-auto">
+                        <table class="comparison-table w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Tiêu Chí</th>
+                                    <th scope="col" class="px-6 py-3">Đội IT An Ninh Nội Bộ</th>
+                                    <th scope="col" class="px-6 py-3">NetGuardX SOC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium">Khả năng giám sát 24/7/365</td>
+                                    <td>Rất tốn kém và khó khăn để duy trì đội ngũ làm việc theo ca liên tục. Thường chỉ giám sát trong giờ hành chính.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Đảm bảo giám sát liên tục, kể cả ngoài giờ, ngày lễ.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Chuyên môn sâu về An ninh mạng</td>
+                                    <td>Khó tuyển dụng và giữ chân chuyên gia giỏi. IT nội bộ thường phải kiêm nhiệm nhiều mảng. Kiến thức có thể không được cập nhật thường xuyên.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Đội ngũ chuyên gia được đào tạo bài bản, có chứng chỉ quốc tế, kinh nghiệm xử lý đa dạng các loại tấn công và liên tục cập nhật kiến thức.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Chi phí đầu tư ban đầu</td>
+                                    <td>Rất lớn: Phần cứng, phần mềm (SIEM, SOAR, EDR...), chi phí bản quyền, không gian làm việc, đào tạo.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Chi phí dịch vụ định kỳ, dễ dự đoán, không cần đầu tư lớn ban đầu vào công nghệ và nhân sự.</td>
+                                
+                                </tr>
+                                 <tr>
+                                    <td class="font-medium">Chi phí vận hành</td>
+                                    <td>Cao: Lương chuyên gia, chi phí đào tạo lại, duy trì bản quyền phần mềm, nâng cấp công nghệ.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Tối ưu hơn nhờ quy mô và chia sẻ tài nguyên.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Công nghệ & Threat Intelligence</td>
+                                    <td>Khó khăn trong việc tự đầu tư và cập nhật các công nghệ mới nhất, cũng như các nguồn Threat Intelligence chất lượng cao.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Sử dụng nền tảng công nghệ tiên tiến, liên tục cập nhật và tích hợp các nguồn Threat Intelligence toàn cầu.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Kinh nghiệm thực chiến</td>
+                                    <td>Chỉ tiếp xúc với các vấn đề trong nội bộ doanh nghiệp.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Tiếp xúc và xử lý sự cố cho nhiều khách hàng thuộc các ngành nghề khác nhau, mang lại kinh nghiệm đa dạng và phong phú.</td>
+                                </tr>
+                                 <tr>
+                                    <td class="font-medium">Thời gian triển khai</td>
+                                    <td>Mất nhiều tháng, thậm chí hàng năm để xây dựng và ổn định đội ngũ, quy trình.</td>
+                                    <td><i class="fas fa-check-circle mr-1"></i> Triển khai nhanh chóng, mang lại giá trị bảo vệ sớm.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-4 text-gray-700"><strong>Kết luận:</strong> Đối với hầu hết doanh nghiệp, sử dụng dịch vụ SOC chuyên nghiệp như NetGuardX là giải pháp tối ưu về chi phí, hiệu quả và khả năng bảo vệ so với việc tự xây dựng.</p>
+                </div>
+
+                <div id="vs-other-outsourcers" class="tab-content card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">NetGuardX vs. Các Đơn Vị Outsource Khác trên Thị Trường</h3>
+                    <p class="text-gray-700 mb-4">Thị trường có nhiều nhà cung cấp dịch vụ SOC. Vậy, đâu là điểm khác biệt giúp NetGuardX nổi bật và mang lại giá trị vượt trội cho khách hàng?</p>
+                     <ul class="list-disc list-inside space-y-3 text-gray-700">
+                        <li>
+                            <strong>Nền tảng công nghệ tích hợp và tự chủ:</strong>
+                            <p class="ml-6 text-sm">NetGuardX không chỉ dựa vào các công cụ của bên thứ ba mà còn phát triển và tích hợp các thành phần công nghệ cốt lõi, cho phép tùy chỉnh sâu và tối ưu hóa hiệu suất cho từng khách hàng. Điều này đảm bảo sự linh hoạt và khả năng thích ứng nhanh với các mối đe dọa mới.</p>
+                        </li>
+                        <li>
+                            <strong>Đội ngũ chuyên gia được chứng nhận quốc tế và giàu kinh nghiệm thực chiến tại Việt Nam:</strong>
+                            <p class="ml-6 text-sm">Được phát triển bởi đội ngũ từng vận hành hệ thống mạng cho các khách sạn 5 sao, tập đoàn FDI và khối khách hàng cao cấp, NetGuardX hiểu rằng một cảnh báo đúng lúc có thể cứu cả một hệ thống.</p>
+                            <p class="ml-6 text-sm">Chuyên gia của chúng tôi không chỉ sở hữu các chứng chỉ uy tín (CISSP, CEH, OSCP, SANS...) mà còn am hiểu sâu sắc bối cảnh an ninh mạng đặc thù tại Việt Nam, từ đó đưa ra những phân tích và khuyến nghị phù hợp nhất.</p>
+                        </li>
+                        <li>
+                            <strong>Quy trình vận hành chuẩn hóa theo các tiêu chuẩn quốc tế (ISO 27001, NIST Cybersecurity Framework):</strong>
+                            <p class="ml-6 text-sm">Mọi hoạt động từ giám sát, phát hiện, phân tích đến ứng phó đều tuân theo các quy trình đã được kiểm chứng, đảm bảo tính nhất quán, chuyên nghiệp và chất lượng dịch vụ cao nhất.</p>
+                        </li>
+                        <li>
+                            <strong>Cam kết chất lượng dịch vụ (SLA) rõ ràng và minh bạch:</strong>
+                            <p class="ml-6 text-sm">Chúng tôi định nghĩa rõ ràng các chỉ số chất lượng dịch vụ như thời gian phát hiện, thời gian phản hồi cảnh báo, thời gian cung cấp báo cáo... và cam kết thực hiện, giúp khách hàng yên tâm về hiệu quả đầu tư.</p>
+                        </li>
+                        <li>
+                            <strong>Khả năng tùy chỉnh gói dịch vụ linh hoạt theo nhu cầu và ngân sách của từng doanh nghiệp:</strong>
+                            <p class="ml-6 text-sm">NetGuardX hiểu rằng mỗi doanh nghiệp có những đặc thù riêng. Chúng tôi cung cấp các gói dịch vụ đa dạng và khả năng tùy chỉnh để phù hợp nhất với quy mô, ngành nghề và mức độ rủi ro của bạn.</p>
+                        </li>
+                         <li>
+                            <strong>Tập trung vào mối quan hệ đối tác lâu dài:</strong>
+                            <p class="ml-6 text-sm">Chúng tôi không chỉ là nhà cung cấp dịch vụ, mà mong muốn trở thành đối tác chiến lược, đồng hành cùng sự phát triển an toàn của doanh nghiệp bạn. Sự hỗ trợ tận tâm và tư vấn liên tục là cam kết của chúng tôi.</p>
+                        </li>
+                    </ul>
+                    <p class="mt-4 text-gray-700"><strong>Lời khuyên cho Sales:</strong> "Khi gặp khách hàng đang cân nhắc các đơn vị outsource khác, hãy tập trung vào những điểm khác biệt này. Đừng chỉ nói về tính năng, hãy nói về giá trị mà sự khác biệt đó mang lại cho hoạt động kinh doanh và sự an tâm của họ."</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="hoat-dong" class="pt-16 -mt-16">
+            <h2 class="text-2xl sm:text-3xl font-bold section-title mb-6 pb-2">🧠 Hoạt Động Tương Tác: Củng Cố Kiến Thức</h2>
+            
+            <div class="card p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Hoạt động 1: Bảng So Sánh Tương Tác</h3>
+                <p class="text-gray-700 mb-4">Hãy chọn một tiêu chí bên dưới để xem NetGuardX so sánh như thế nào với việc tự xây dựng đội ngũ IT an ninh nội bộ. Thảo luận về những ưu thế này khi tư vấn cho khách hàng.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <button class="interactive-comparison-cell p-3 bg-gray-200 rounded hover:bg-green-100 text-center" data-feature="cost">Chi Phí</button>
+                    <button class="interactive-comparison-cell p-3 bg-gray-200 rounded hover:bg-green-100 text-center" data-feature="expertise">Chuyên Môn</button>
+                    <button class="interactive-comparison-cell p-3 bg-gray-200 rounded hover:bg-green-100 text-center" data-feature="time">Thời Gian 24/7</button>
+                </div>
+                <div id="comparison-explanation-text" class="comparison-explanation hidden">
+                    Nội dung giải thích sẽ xuất hiện ở đây.
+                </div>
+            </div>
+
+            <div class="card p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Hoạt động 2: Giải Đáp Nhanh Các Câu Hỏi "Khó" Từ Khách Hàng</h3>
+                <p class="text-gray-700 mb-4">Dưới đây là một số câu hỏi khách hàng thường đặt ra để kiểm tra sự hiểu biết của bạn về giới hạn dịch vụ. Hãy suy nghĩ và chuẩn bị câu trả lời tập trung vào việc làm rõ phạm vi và giá trị của NetGuardX.</p>
+                <div class="space-y-3">
+                    <div>
+                        <button class="accordion-button w-full text-left p-3 font-medium rounded-md flex justify-between items-center text-sm">
+                            <span>1. "Nếu tôi dùng NetGuardX thì tôi có cần mua Firewall nữa không?"</span>
+                            <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="accordion-content px-3 pb-3 text-gray-600 text-sm">
+                            <p class="mt-2"><strong>Trả lời gợi ý:</strong> "Cảm ơn câu hỏi rất hay của anh/chị. NetGuardX và Firewall đóng vai trò khác nhau nhưng bổ trợ cho nhau trong một chiến lược bảo mật toàn diện. Firewall giống như người lính gác cổng, ngăn chặn các truy cập trái phép từ bên ngoài vào hệ thống của anh/chị. Còn NetGuardX là trung tâm chỉ huy, giám sát toàn bộ hoạt động bên trong và bên ngoài, phân tích log từ chính Firewall và các thiết bị khác để phát hiện những dấu hiệu tinh vi hơn mà Firewall có thể bỏ sót, ví dụ như một cuộc tấn công đã vượt qua được lớp phòng thủ ban đầu hoặc các mối đe dọa từ nội bộ. Vì vậy, để đảm bảo an toàn tối đa, anh/chị vẫn cần Firewall và NetGuardX sẽ giúp tối ưu hóa hiệu quả của Firewall đó."</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="accordion-button w-full text-left p-3 font-medium rounded-md flex justify-between items-center text-sm">
+                            <span>2. "Các bạn có thể vào server của tôi để vá lỗi hoặc xóa virus ngay lập tức không?"</span>
+                            <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="accordion-content px-3 pb-3 text-gray-600 text-sm">
+                            <p class="mt-2"><strong>Trả lời gợi ý:</strong> "Dịch vụ NetGuardX của chúng tôi tập trung vào việc giám sát, phát hiện sớm các mối đe dọa và cung cấp cảnh báo cùng hướng dẫn chi tiết để đội ngũ IT của anh/chị có thể thực hiện các hành động khắc phục trên hệ thống. Chúng tôi không trực tiếp truy cập và thay đổi cấu hình hay can thiệp vào server của anh/chị, trừ khi có một thỏa thuận dịch vụ đặc biệt với quy trình ủy quyền và phối hợp rõ ràng. Điều này nhằm đảm bảo quyền kiểm soát và trách nhiệm cuối cùng đối với hệ thống vẫn thuộc về phía anh/chị. Tuy nhiên, chúng tôi sẽ cung cấp đầy đủ thông tin và hỗ trợ từ xa để đội IT của anh/chị xử lý một cách nhanh chóng và hiệu quả nhất."</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="accordion-button w-full text-left p-3 font-medium rounded-md flex justify-between items-center text-sm">
+                            <span>3. "Nếu tôi bị ransomware mã hóa hết dữ liệu thì NetGuardX có giải mã được không?"</span>
+                            <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="accordion-content px-3 pb-3 text-gray-600 text-sm">
+                            <p class="mt-2"><strong>Trả lời gợi ý:</strong> "Đây là một lo ngại rất thực tế. Mục tiêu chính của NetGuardX là phát hiện sớm các dấu hiệu của một cuộc tấn công ransomware, ví dụ như hành vi mã hóa bất thường, trước khi nó kịp mã hóa toàn bộ dữ liệu của anh/chị, từ đó giúp ngăn chặn hoặc giảm thiểu thiệt hại. Tuy nhiên, nếu dữ liệu đã bị mã hóa hoàn toàn bởi một loại ransomware mới và không có khóa giải mã công khai, việc giải mã là vô cùng khó khăn, thậm chí là không thể nếu không trả tiền chuộc – điều mà chúng tôi không khuyến khích. NetGuardX không trực tiếp cung cấp dịch vụ giải mã dữ liệu trong trường hợp này. Thay vào đó, chúng tôi sẽ hỗ trợ anh/chị điều tra nguyên nhân, cách ly mối đe dọa để tránh lây lan, và tư vấn các bước khôi phục từ bản sao lưu (backup) gần nhất, nếu có. Đó là lý do tại sao việc có một chiến lược backup dữ liệu hiệu quả song song với dịch vụ giám sát là vô cùng quan trọng."</p>
+                        </div>
+                    </div>
+                     <div>
+                        <button class="accordion-button w-full text-left p-3 font-medium rounded-md flex justify-between items-center text-sm">
+                            <span>4. "NetGuardX có đảm bảo 100% tôi sẽ không bị tấn công không?"</span>
+                            <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        <div class="accordion-content px-3 pb-3 text-gray-600 text-sm">
+                            <p class="mt-2"><strong>Trả lời gợi ý:</strong> "Trong lĩnh vực an ninh mạng, không một giải pháp hay dịch vụ nào có thể đảm bảo an toàn tuyệt đối 100%, bởi vì các mối đe dọa và kỹ thuật tấn công liên tục thay đổi và ngày càng tinh vi. Tuy nhiên, NetGuardX cam kết mang lại mức độ bảo vệ cao nhất có thể bằng cách giám sát liên tục, phát hiện sớm và hỗ trợ phản ứng nhanh chóng. Mục tiêu của chúng tôi là giảm thiểu tối đa nguy cơ bị tấn công thành công, và nếu không may sự cố xảy ra, chúng tôi sẽ giúp anh/chị hạn chế thiệt hại ở mức thấp nhất và khôi phục hoạt động nhanh nhất có thể. An ninh mạng là một quá trình liên tục cải tiến và thích ứng, không phải là một đích đến."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 text-center">
+        <div class="container mx-auto px-4">
+            <p>&copy; 2025 Buổi Đào Tạo Bán Hàng NetGuardX. Mọi quyền được bảo lưu.</p>
+            <p class="text-sm mt-2">NetGuardX - Đối Tác An Ninh Tin Cậy Của Bạn</p>
+        </div>
+    </footer>
+
+    <script>
+        // Accordion functionality
+        const accordionButtons = document.querySelectorAll('.accordion-button');
+        accordionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const accordionContent = button.nextElementSibling;
+                const icon = button.querySelector('i');
+
+                button.classList.toggle('active');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+
+                if (accordionContent.style.maxHeight) {
+                    accordionContent.style.maxHeight = null;
+                } else {
+                    accordionContent.style.maxHeight = accordionContent.scrollHeight + "px";
+                }
+            });
+        });
+
+        // Tab functionality
+        function openTab(event, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            event.currentTarget.classList.add("active");
+        }
+         // Smooth scrolling for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // Offset for sticky navbar height if you have one
+                    // const navbarHeight = document.getElementById('navbar').offsetHeight;
+                    // const elementPosition = targetElement.getBoundingClientRect().top;
+                    // const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+                    
+                    // window.scrollTo({
+                    //      top: offsetPosition,
+                    //      behavior: "smooth"
+                    // });
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                        // block: 'start' // Adjust as needed
+                    });
+                }
+            });
+        });
+        
+        // Active Nav Link on Scroll
+        const sections = document.querySelectorAll("section");
+        const navLi = document.querySelectorAll("nav .nav-link");
+        window.onscroll = () => {
+          var current = "";
+
+          sections.forEach((section) => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 100) { // Adjusted offset for better active state trigger
+              current = section.getAttribute("id"); }
+          });
+
+          navLi.forEach((li) => {
+            li.classList.remove("active");
+            if (li.getAttribute("href") === ("#" + current)) {
+              li.classList.add("active");
+            }
+          });
+        };
+
+        // SOC Model Details Toggle
+        function toggleDetails(detailId) {
+            const detailElement = document.getElementById(detailId);
+            if (detailElement.style.display === 'block') {
+                detailElement.style.display = 'none';
+            } else {
+                // Hide all other details before showing the current one
+                document.querySelectorAll('.soc-step-details').forEach(el => el.style.display = 'none');
+                detailElement.style.display = 'block';
+            }
+        }
+        
+        // Interactive Comparison Table for Hoat Dong
+        const comparisonCells = document.querySelectorAll('.interactive-comparison-cell');
+        const explanationTextElement = document.getElementById('comparison-explanation-text');
+        const explanations = {
+            cost: "<strong>Chi phí:</strong> NetGuardX giúp doanh nghiệp tiết kiệm đáng kể chi phí đầu tư ban đầu cho hạ tầng, công nghệ và nhân sự chuyên trách so với tự xây dựng. Chi phí dịch vụ dễ dự đoán và tối ưu hơn nhờ quy mô.",
+            expertise: "<strong>Chuyên môn:</strong> NetGuardX cung cấp đội ngũ chuyên gia an ninh mạng giàu kinh nghiệm, được đào tạo bài bản và liên tục cập nhật kiến thức, điều mà IT nội bộ khó có thể đáp ứng toàn diện.",
+            time: "<strong>Thời gian 24/7:</strong> NetGuardX đảm bảo giám sát an ninh liên tục 24/7/365, kể cả ngoài giờ hành chính, ngày lễ, Tết, trong khi việc duy trì đội ngũ nội bộ làm việc theo ca liên tục là rất tốn kém và phức tạp."
+        };
+
+        comparisonCells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                // Remove 'selected' class from all cells
+                comparisonCells.forEach(c => c.classList.remove('selected', 'bg-green-500', 'text-white'));
+                // Add 'selected' class to the clicked cell
+                cell.classList.add('selected', 'bg-green-500', 'text-white');
+                
+                const feature = cell.getAttribute('data-feature');
+                explanationTextElement.innerHTML = explanations[feature] || "Chọn một tiêu chí để xem giải thích.";
+                explanationTextElement.classList.remove('hidden');
+            });
+        });
+
+    </script>
+</body>
+</html>
